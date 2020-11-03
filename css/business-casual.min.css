@@ -41,9 +41,9 @@ p {
   font-weight: 800;
 }
 .site-heading .site-heading-lower {
-  font-size: 5rem;
+  font-size: 3.5rem;
   font-weight: 100;
-  line-height: 4rem;
+  line-height: 5rem;
 }
 .page-section {
   margin-top: 5rem;
@@ -197,16 +197,10 @@ p {
 .address strong {
   font-size: 1.2rem;
 }
-/* .footer {
-  background-image: linear-gradient(
-    rgba(255, 255, 255, 0.5),
-    rgba(255, 255, 255, 0.2),
-  );
-} */
 .footer {
   background: linear-gradient(
-    rgba(255, 255, 255, 0.4),
-    rgba(255, 255, 255, 0.05)
+    rgba(255, 255, 255, 0.212),
+    rgba(255, 255, 255, 0.1)
   );
 }
 .text-primary {
