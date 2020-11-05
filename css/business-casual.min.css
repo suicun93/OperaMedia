@@ -241,6 +241,10 @@ p {
 .rounded {
   border-radius: 0.5rem !important;
 }
+
+.p-5-2 {
+  padding: 40px !important;
+}
 /* Desktop */
 @media (min-width: 1600px) {
   .row2 {
@@ -248,7 +252,6 @@ p {
     margin-right: 10rem;
   }
   .p-5-2 {
-    padding: 2rem !important;
     height: 16rem;
   }
   .container2 {
@@ -261,7 +264,6 @@ p {
 }
 @media (min-width: 700px) and (max-width: 1600px) {
   .p-5-2 {
-    padding: 2rem !important;
     height: 20rem;
   }
   .row2 {
@@ -278,8 +280,5 @@ p {
   .row2 {
     margin-left: 1rem;
     margin-right: 1rem;
-  }
-  .p-5-2 {
-    padding: 2rem !important;
   }
 }
