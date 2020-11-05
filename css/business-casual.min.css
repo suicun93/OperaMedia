@@ -244,6 +244,10 @@ p {
 
 .p-5-2 {
   padding: 40px;
+  -webkit-padding-before: 40px;
+  -webkit-padding-end: 40px;
+  -webkit-padding-after: 40px;
+  -webkit-padding-start: 40px;
 }
 /* Desktop */
 @media (min-width: 1600px) {
