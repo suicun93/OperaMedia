@@ -63,7 +63,7 @@ p {
   font-weight: 100;
 }
 .bg-faded {
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.83);
 }
 #mainNav {
   background-color: rgba(0, 0, 0, 0.6);
@@ -228,4 +228,58 @@ p {
 .medium {
   color: rgba(230, 167, 86, 0.5);
   font-weight: 600;
+}
+
+.col-sm-12 {
+  padding: 10px 0 10px 0;
+}
+
+.col-md-6 {
+  padding: 10px 0 10px 0;
+}
+
+.rounded {
+  border-radius: 0.5rem !important;
+}
+/* Desktop */
+@media (min-width: 1600px) {
+  .row2 {
+    margin-left: 10rem;
+    margin-right: 10rem;
+  }
+  .p-5-2 {
+    padding: 2rem !important;
+    height: 16rem;
+  }
+  .container2 {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .col-md-6 {
+    padding: 10px 20px 10px 20px;
+  }
+}
+@media (min-width: 700px) and (max-width: 1600px) {
+  .p-5-2 {
+    padding: 2rem !important;
+    height: 20rem;
+  }
+  .row2 {
+    margin-left: 3rem;
+    margin-right: 3rem;
+  }
+  .container2 {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+/* Mobile */
+@media (min-width: 0px) and (max-width: 700px) {
+  .row2 {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+  .p-5-2 {
+    padding: 2rem !important;
+  }
 }
