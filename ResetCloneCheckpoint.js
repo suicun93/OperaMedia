@@ -13,28 +13,22 @@ function lamChuyenAy() {
     var limit = document.getElementById('limit').value;
     var page = document.getElementById('page').value;
     var createdDateContains = document.getElementById('createdDateContains').value;
-    var androidIdIsEmptyOnly = document.getElementById('androidIdIsEmptyOnly').value == 'on';
+    var androidIdIsEmptyOnly = document.getElementById('androidIdIsEmptyOnly').checked;
     var status = [];
 
     /* Iterate options of select element */
     for (const option of document.querySelectorAll('#status option')) {
         if (option.selected) {
-            status.push(getKeyByValue(option.value));
+            status.push(option.value);
         }
     }
 
-    // myLog({ info: "token: " + token });
-    // myLog({ info: "limit: " + limit });
-    // myLog({ info: "page: " + page });
-    // myLog({ info: "createdDateContains: " + createdDateContains });
-    // myLog({ info: "androidIdIsEmptyOnly: " + androidIdIsEmptyOnly });
-    // myLog({ info: "status: " + status });
-    // console.log(status);
+
 
     listCloneAndReset({
         token: token,
-        limit: limit,
-        page: page,
+        limit: parseInt(limit),
+        page: parseInt(page),
         createdDateContains: createdDateContains,
         androidIdIsEmptyOnly: androidIdIsEmptyOnly,
         status: status,
@@ -55,6 +49,14 @@ async function listCloneAndReset({
     androidIdIsEmptyOnly: androidIdIsEmptyOnly = true,
     status: status = [Statuses.CHECKPOINT]
 }) {
+    // myLog({ info: "token: " + token });
+    // myLog({ info: "limit: " + limit });
+    // myLog({ info: "page: " + page });
+    // myLog({ info: "createdDateContains: " + createdDateContains });
+    // myLog({ info: "androidIdIsEmptyOnly: " + androidIdIsEmptyOnly });
+    // myLog({ info: "status: " + status });
+    // console.log(status);
+
     // No token thi chiu
     if (token.length == 0) {
         myLog({ info: "Không có token thì chịu!" });
@@ -120,7 +122,6 @@ async function listCloneAndReset({
         xhr.open("POST", "https://customer.autofarmer.net/v1/clones/search");
         xhr.setRequestHeader("token", token);
         xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.responseType = 'json';
 
         xhr.send(data);
     });
@@ -132,7 +133,6 @@ async function resetClone(token, clone_id, uid) {
 
         // var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
         var xhr = new XMLHttpRequest();
-        xhr.withCredentials = true;
 
         xhr.addEventListener("readystatechange", function() {
             if (this.readyState === 4) {
@@ -218,8 +218,8 @@ function myLog({
     }
 }
 
-function getKeyByValue(searchValue) {
-    return Object.keys(Statuses).find(
-        key => Statuses[key] === searchValue,
-    )
-}
+// function getKeyByValue(searchValue) {
+//     return Object.keys(Statuses).find(
+//         key => Statuses[key] === searchValue,
+//     )
+// }
