@@ -1,11 +1,11 @@
 var count = 0;
 
-const Statuses = {
-    CHECKPOINT: 'checkpoint',
-    CHECKING: 'checking',
-    NO_ACTIVITY_24H: 'no24h',
-    NO_DO_RESULT_24H: 'no-doresult-24h'
-}
+// const Statuses = {
+//     CHECKPOINT: 'checkpoint',
+//     CHECKING: 'checking',
+//     NO_ACTIVITY_24H: 'no24h',
+//     NO_DO_RESULT_24H: 'no-doresult-24h'
+// }
 
 function lamChuyenAy() {
     myLog({ clear: true });
@@ -23,8 +23,7 @@ function lamChuyenAy() {
         }
     }
 
-
-
+    // Call API
     listCloneAndReset({
         token: token,
         limit: parseInt(limit),
@@ -34,12 +33,6 @@ function lamChuyenAy() {
         status: status,
     })
 }
-// listCloneAndReset({
-//     token: "81f13fc5-eca8-11eb-a577-b4969111cb2c",
-//     limit: 1000,
-//     createdDateContains: "03-06-2021",
-//     androidIdIsEmptyOnly: false,
-// });
 
 async function listCloneAndReset({
     token: token,
@@ -65,65 +58,48 @@ async function listCloneAndReset({
 
     // Co token thi vao viec
     await new Promise((resolve, _) => {
-        var data = JSON.stringify({
-            "alive_status": status,
-            "appname": [
-                "facebook"
-            ],
-            "page": page,
-            "limit": limit,
-            "android_id": null
-        });
-
-        // var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-        var xhr = new XMLHttpRequest();
-        xhr.withCredentials = true;
-
-        xhr.addEventListener("readystatechange", async function() {
-            if (this.readyState === 4) {
-                var json = JSON.parse(this.responseText);
-                var listClone = json.data.data;
-                myLog({ info: "Tổng cộng cần xử lý: " + listClone.length + " clones." });
-                await Promise.all(listClone.map(async(clone) => {
-                    if (
-                        // clone.alive_status === 'checkpoint' &&
-                        (!androidIdIsEmptyOnly || clone.android_id.length == 0) &&
-                        formatDate({ dateInput: clone.created_date }).indexOf(createdDateContains) != -1
-                    ) {
-                        await resetClone(
-                            token = token,
-                            clone_id = clone.id,
-                            uid = clone.uid,
-                        );
-                    }
-                }));
-
-                // Done
-                myLog({ info: "Done: " + count + " clones." });
-                resolve();
-            } else {
-                resolve();
-                // Failed
-                // reject({
-                //     status: this.status,
-                //     statusText: xhr.statusText
-                // });
-            }
-        });
-
-        xhr.onerror = function() {
-            resolve();
-            // reject({
-            //     status: this.status,
-            //     statusText: xhr.statusText
-            // });
+        // Luồng gió mới
+        var settings = {
+            "url": "https://customer.autofarmer.net/v1/clones/search",
+            "method": "POST",
+            "timeout": 0,
+            "headers": {
+                "token": token,
+                "Content-Type": "application/json"
+            },
+            "data": JSON.stringify({
+                "alive_status": status,
+                "appname": [
+                    "facebook"
+                ],
+                "page": page,
+                "limit": limit,
+                "android_id": null
+            }),
         };
 
-        xhr.open("POST", "https://customer.autofarmer.net/v1/clones/search");
-        xhr.setRequestHeader("token", token);
-        xhr.setRequestHeader("Content-Type", "application/json");
+        $.ajax(settings).done(async function(response) {
+            var json = response;
+            var listClone = json.data.data;
+            myLog({ info: "Tổng cộng cần xử lý: " + listClone.length + " clones." });
+            await Promise.all(listClone.map(async(clone) => {
+                if (
+                    // clone.alive_status === 'checkpoint' &&
+                    (!androidIdIsEmptyOnly || clone.android_id.length == 0) &&
+                    formatDate({ dateInput: clone.created_date }).indexOf(createdDateContains) != -1
+                ) {
+                    await resetClone(
+                        token = token,
+                        clone_id = clone.id,
+                        uid = clone.uid,
+                    );
+                }
+            }));
 
-        xhr.send(data);
+            // Done
+            myLog({ info: "Done: " + count + " clones." });
+            resolve();
+        });
     });
 }
 
@@ -131,13 +107,21 @@ async function resetClone(token, clone_id, uid) {
     await new Promise((resolve, _) => {
         var data = "{\n    \"clone_id\":\"" + clone_id + "\"\n}";
 
-        // var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-        var xhr = new XMLHttpRequest();
+        // Luồng gió mới
+        var settings = {
+            "url": "https://customer.autofarmer.net/v1/clones/reset",
+            "method": "POST",
+            "timeout": 0,
+            "headers": {
+                "token": token,
+                "Content-Type": "application/json"
+            },
+            "data": data,
+        };
 
-        xhr.addEventListener("readystatechange", function() {
-            if (this.readyState === 4) {
-                var json = JSON.parse(this.responseText);
-                if (json.code === 200) {
+        $.ajax(settings)
+            .done(response => {
+                if (response.code === 200) {
                     myLog({
                         info: "Đã Reset: ",
                         uid: uid,
@@ -148,24 +132,17 @@ async function resetClone(token, clone_id, uid) {
                         uid: uid,
                     });
                 }
+            })
+            .fail(() => {
+                myLog({
+                    info: "Đã Failed: ",
+                    uid: uid,
+                });
+            })
+            .always(() => {
                 count++;
-                resolve(xhr.response);
-            }
-        });
-
-        xhr.onerror = function() {
-            myLog({
-                info: "Đã Failed: ",
-                uid: uid,
+                resolve();
             });
-            count++;
-            resolve(xhr.response);
-        }
-        xhr.open("POST", "https://customer.autofarmer.net/v1/clones/reset");
-        xhr.setRequestHeader("token", token);
-        xhr.setRequestHeader("Content-Type", "application/json");
-
-        xhr.send(data);
     }, );
 }
 
