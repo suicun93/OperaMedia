@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>Reset Clone To Live</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Custom fonts for this template -->
+    <link href="https://fonts.googleapis.com/css?family=Raleway:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- Custom styles for this template -->
+    <link href="css/business-casual.min.css" rel="stylesheet" />
+</head>
+
+
+
+<body>
+    <script src="ResetCloneCheckpoint.js"></script>
+    <h1 class="site-heading text-center text-white d-none d-lg-block">
+        <span class="site-heading-upper text-primary mb-3">Opera media</span>
+        <span class="site-heading-lower">Let us bring your company a soul</span>
+    </h1>
+
+    <!-- Navigation -->
+    <section class="page-section cta">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-9 mx-auto">
+                    <div class="cta-inner text-center rounded">
+                        <h2 class="section-heading mb-5">
+                            <span class="section-heading-upper">Reset Clone to Live</span
+                >
+              </br>
+                <span class="section-heading-lower">Điền thông tin</span>
+                        </h2>
+
+                        <!-- Token -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label for="token">Token</label>
+                                <input type="text" class="form-control" id="token" placeholder="Token" required>
+                                <!-- <div class="valid-feedback">
+                      Looks good!
+                    </div> -->
+                            </div>
+                        </div>
+
+                        <!-- Số lượng -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label for="limit">Số lượng</label>
+                                <input type="number" class="form-control" id="limit" placeholder="Số lượng" value="5000" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="page">Trang số mấy (Mặc định là 1 - nên để là 1)</label>
+                                <input type="number" class="form-control" id="page" placeholder="Số trang" value="1" required>
+                            </div>
+
+                        </div>
+
+
+                        <!-- Created Date Contain -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label for="createdDateContains">Ngày khởi tạo bao gồm (Để trống thì sẽ quét hết)</label>
+                                <input type="text" class="form-control" id="createdDateContains" placeholder="Ngày khởi tạo bao gồm" value="" required>
+                            </div>
+
+
+                        </div>
+
+                        <!-- Chỉ quét clone đang ko trong device -->
+                        <div class="form-row">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="androidIdIsEmptyOnly" checked>
+                                <label class="custom-control-label" for="androidIdIsEmptyOnly">Chỉ quét clone đang ko trong device (Tắt đi thì sẽ quét hết) </label>
+                            </div>
+                        </div>
+
+                        <!-- Select status -->
+                        <br/>
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label for="status">Chọn status để quét</label>
+                                <select class="custom-select" multiple id="status">
+                                  <option value="checkpoint" selected>Checkpoint</option>
+                                  <option value="checking">Checking</option>
+                                  <option value="no24h">No-Activities-24h</option>
+                                  <option value="no-doresult-24h">No-DoResult-24h</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="ahihi"></div>
+                        <br/>
+                        <button class="btn btn-primary" type="button" onclick="lamChuyenAy()">Reset clone</button>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer text-faded text-center py-3">
+        <div class="container">
+            <p class="m-0 medium">Copyright &copy; Đức Trung Hoàng 2020</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script to highlight the active date in the hours list -->
+    <script>
+        $(".list-hours li").eq(new Date().getDay()).addClass("today");
+    </script>
+</body>
+
+</html>
