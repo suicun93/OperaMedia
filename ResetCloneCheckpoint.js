@@ -7,9 +7,71 @@ var count = 0;
 //     NO_DO_RESULT_24H: 'no-doresult-24h'
 // }
 
-function lamChuyenAy() {
+async function startProcessing() {
+
     myLog({ clear: true });
-    var token = document.getElementById('token').value;
+
+    var username = document.getElementById('username').value;
+    var password = document.getElementById('password').value;
+    var statusLogin = document.getElementById('ket-qua');
+    // Login
+    await new Promise(
+            function(resolve, reject) {
+                var myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+
+                var raw = JSON.stringify({
+                    "username": username,
+                    "password": password,
+                    "device_id": "1"
+                });
+
+                var requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: 'follow'
+                };
+
+                fetch("https://customer.autofarmer.net/v1/login", requestOptions)
+                    .then(response => response.text())
+                    .then(result => {
+                        let json = JSON.parse(result);
+                        if (json.code == 200 && json.data != null && json.data.token != null) {
+                            console.log("token = " + json.data.token);
+                            resolve(json.data.token);
+                        } else {
+                            console.log(json);
+                            reject(json.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.log('error', error);
+                        reject(error);
+                    });
+            })
+        .then((token) => loginSuccess(token = token))
+        .catch((error) => loginFailure(error = error));
+
+    // LoginSuccess
+    function loginSuccess(token = '') {
+        statusLogin.textContent = 'Đăng nhập thành công. (' + token + '). Đang reset clone...';
+        setTimeout(function() {
+            statusLogin.textContent = '';
+            lamChuyenAy(token = token);
+        }, 2000);
+    };
+
+    // LoginFail
+    function loginFailure(error = '') {
+        statusLogin.textContent = 'Đăng nhập thất bại. (' + error + ')';
+        // setTimeout(function() {
+        //     statusLogin.textContent = '';
+        // }, 5000);
+    };
+}
+
+function lamChuyenAy(token = '') {
     var limit = document.getElementById('limit').value;
     var page = document.getElementById('page').value;
     var createdDateContains = document.getElementById('createdDateContains').value;
@@ -49,6 +111,8 @@ async function listCloneAndReset({
     // myLog({ info: "androidIdIsEmptyOnly: " + androidIdIsEmptyOnly });
     // myLog({ info: "status: " + status });
     // console.log(status);
+
+    count = 0;
 
     // No token thi chiu
     if (token.length == 0) {
@@ -183,15 +247,15 @@ function myLog({
 }) {
     // Clear
     if (clear) {
-        document.getElementById('ahihi').innerHTML = '';
+        document.getElementById('ket-qua').innerHTML = '';
         return;
     }
 
     // Show
     if (uid.length != 0) {
-        document.getElementById('ahihi').innerHTML += info + "<a href='https://www.fb.com/" + uid + "'>" + uid + "</a><br/>";
+        document.getElementById('ket-qua').innerHTML += info + "<a href='https://www.fb.com/" + uid + "'>" + uid + "</a><br/>";
     } else {
-        document.getElementById('ahihi').innerHTML += "<p>" + (info.length != 0 ? info : "empty") + "</p>";
+        document.getElementById('ket-qua').innerHTML += "<p>" + (info.length != 0 ? info : "empty") + "</p>";
     }
 }
 
