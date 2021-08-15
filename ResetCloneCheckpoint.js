@@ -1,213 +1,120 @@
-var count = 0;
+function notify({
+    message: message = '',
+    dismiss: dismiss = false,
+    clear: clear = false,
+    color: color = 'black',
+    tag: tag = 'ket-qua',
+} = {}) {
+    let ketQua = document.getElementById(tag);
 
-// const Statuses = {
-//     CHECKPOINT: 'checkpoint',
-//     CHECKING: 'checking',
-//     NO_ACTIVITY_24H: 'no24h',
-//     NO_DO_RESULT_24H: 'no-doresult-24h'
-// }
-
-async function startProcessing() {
-
-    myLog({ clear: true });
-
-    var username = document.getElementById('username').value;
-    var password = document.getElementById('password').value;
-    var statusLogin = document.getElementById('ket-qua');
-    // Login
-    await new Promise(
-            function(resolve, reject) {
-                var myHeaders = new Headers();
-                myHeaders.append("Content-Type", "application/json");
-
-                var raw = JSON.stringify({
-                    "username": username,
-                    "password": password,
-                    "device_id": "1"
-                });
-
-                var requestOptions = {
-                    method: 'POST',
-                    headers: myHeaders,
-                    body: raw,
-                    redirect: 'follow'
-                };
-
-                fetch("https://customer.autofarmer.net/v1/login", requestOptions)
-                    .then(response => response.text())
-                    .then(result => {
-                        let json = JSON.parse(result);
-                        if (json.code == 200 && json.data != null && json.data.token != null) {
-                            console.log("token = " + json.data.token);
-                            resolve(json.data.token);
-                        } else {
-                            console.log(json);
-                            reject(json.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.log('error', error);
-                        reject(error);
-                    });
-            })
-        .then((token) => loginSuccess(token = token))
-        .catch((error) => loginFailure(error = error));
-
-    // LoginSuccess
-    function loginSuccess(token = '') {
-        statusLogin.textContent = 'Đăng nhập thành công. (' + token + '). Đang reset clone...';
-        setTimeout(function() {
-            statusLogin.textContent = '';
-            lamChuyenAy(token = token);
-        }, 2000);
-    };
-
-    // LoginFail
-    function loginFailure(error = '') {
-        statusLogin.textContent = 'Đăng nhập thất bại. (' + error + ')';
-        // setTimeout(function() {
-        //     statusLogin.textContent = '';
-        // }, 5000);
-    };
+    // Clear
+    if (clear) {
+        ketQua.innerHTML = '';
+        return;
+    }
+    // Show
+    let mess = document.createElement('p');
+    mess.innerHTML = message;
+    mess.style = 'color: ' + color;
+    ketQua.appendChild(mess);
+    // Dismiss
+    if (dismiss) {
+        setTimeout(() => { ketQua.innerHTML = '' }, 3000)
+    }
 }
 
-function lamChuyenAy(token = '') {
-    var limit = document.getElementById('limit').value;
-    var page = document.getElementById('page').value;
-    var createdDateContains = document.getElementById('createdDateContains').value;
-    var androidIdIsEmptyOnly = document.getElementById('androidIdIsEmptyOnly').checked;
-    var status = [];
+function login() {
+    // Get params
+    var username = document.getElementById('username').value;
+    var password = document.getElementById('password').value;
+    let createdDateContains = document.getElementById('createdDateContains').value;
+    let androidIdIsEmptyOnly = document.getElementById('androidIdIsEmptyOnly').checked;
+    let statusReset = document.getElementById('status-reset').value;
 
-    /* Iterate options of select element */
-    for (const option of document.querySelectorAll('#status option')) {
-        if (option.selected) {
-            status.push(option.value);
-        }
-    }
+    // Clear all
+    notify({ clear: true });
 
-    // Call API
-    listCloneAndReset({
-        token: token,
-        limit: parseInt(limit),
-        page: parseInt(page),
-        createdDateContains: createdDateContains,
-        androidIdIsEmptyOnly: androidIdIsEmptyOnly,
-        status: status,
-    })
+    //
+    notify({ message: 'Đang đăng nhập...', color: 'cadetblue' });
+    loginCore({ username: username, password: password })
+        .then(token => {
+            notify({ message: 'Đăng nhập thành công!', color: 'chocolate' });
+            listCloneAndReset({
+                token: token,
+                createdDateContains: createdDateContains,
+                androidIdIsEmptyOnly: androidIdIsEmptyOnly,
+                status: statusReset,
+            });
+        })
+        .catch(err => notify({ message: 'Đăng nhập thất bại: ' + err, color: 'red', dismiss: true }));
 }
 
 async function listCloneAndReset({
     token: token,
-    limit: limit = 50000,
-    page: page = 1,
     createdDateContains: createdDateContains = "",
     androidIdIsEmptyOnly: androidIdIsEmptyOnly = true,
-    status: status = [Statuses.CHECKPOINT]
+    status: status = 'checkpoint'
 }) {
-    // myLog({ info: "token: " + token });
-    // myLog({ info: "limit: " + limit });
-    // myLog({ info: "page: " + page });
-    // myLog({ info: "createdDateContains: " + createdDateContains });
-    // myLog({ info: "androidIdIsEmptyOnly: " + androidIdIsEmptyOnly });
-    // myLog({ info: "status: " + status });
-    // console.log(status);
-
-    count = 0;
-
     // No token thi chiu
     if (token.length == 0) {
         myLog({ info: "Không có token thì chịu!" });
+        notify({ message: 'Đăng nhập thất bại: ' + err, color: 'red' });
         return;
     }
 
     // Co token thi vao viec
-    await new Promise((resolve, _) => {
-        // Luồng gió mới
-        var settings = {
-            "url": "https://customer.autofarmer.net/v1/clones/search",
-            "method": "POST",
-            "timeout": 0,
-            "headers": {
-                "token": token,
-                "Content-Type": "application/json"
-            },
-            "data": JSON.stringify({
-                "alive_status": status,
-                "appname": [
-                    "facebook"
-                ],
-                "page": page,
-                "limit": limit,
-                "android_id": null
-            }),
-        };
-
-        $.ajax(settings).done(async function(response) {
-            var json = response;
-            var listClone = json.data.data;
-            myLog({ info: "Tổng cộng cần xử lý: " + listClone.length + " clones." });
-            await Promise.all(listClone.map(async(clone) => {
-                if (
-                    // clone.alive_status === 'checkpoint' &&
-                    (!androidIdIsEmptyOnly || clone.android_id.length == 0) &&
-                    formatDate({ dateInput: clone.created_date }).indexOf(createdDateContains) != -1
-                ) {
-                    await resetClone(
-                        token = token,
-                        clone_id = clone.id,
-                        uid = clone.uid,
-                    );
-                }
-            }));
-
-            // Done
-            myLog({ info: "Done: " + count + " clones." });
-            resolve();
+    countNeed = 0;
+    countDone = 0;
+    notify({ message: 'Đang lấy tất cả clone...', color: 'cadetblue' });
+    try {
+        let listClone = await listCloneCore({
+            token: token,
+            status: status,
         });
-    });
-}
 
-async function resetClone(token, clone_id, uid) {
-    await new Promise((resolve, _) => {
-        var data = "{\n    \"clone_id\":\"" + clone_id + "\"\n}";
+        notify({ message: "Tổng cộng cần xử lý: " + listClone.length + " clones.", color: 'chocolate' });
 
-        // Luồng gió mới
-        var settings = {
-            "url": "https://customer.autofarmer.net/v1/clones/reset",
-            "method": "POST",
-            "timeout": 0,
-            "headers": {
-                "token": token,
-                "Content-Type": "application/json"
-            },
-            "data": data,
+        for (let clone of listClone) {
+            if (
+                (!androidIdIsEmptyOnly || clone.android_id.length == 0) &&
+                formatDate({ dateInput: clone.created_date }).indexOf(createdDateContains) != -1
+            ) {
+                // Found
+                countNeed++;
+                let aTag = '<a href="https://fb.com/' + clone.uid + '">' + clone.uid + '</a>';
+
+                // Reset Clone API
+                resetCloneCore({ token: token, cloneId: clone.id })
+                    .then(() => {
+                        // Reset Done
+                        notify({ message: "Đã Reset: " + aTag, color: 'green' });
+                        always();
+                    }).catch((error) => {
+                        // Reset Fail
+                        console.log(clone.uid + ' ' + error);
+                        notify({ message: "Đã Fail: " + aTag, color: 'red' });
+                        always();
+                    });
+
+                // Always run
+                let always = () => {
+                    countDone++;
+                    if (countDone == countNeed) {
+                        // Done
+                        notify({
+                            message: "Done: " + countDone + " clones.",
+                            color: 'darkgoldenrod'
+                        });
+                    }
+                };
+            }
         };
 
-        $.ajax(settings)
-            .done(response => {
-                if (response.code === 200) {
-                    myLog({
-                        info: "Đã Reset: ",
-                        uid: uid,
-                    });
-                } else {
-                    myLog({
-                        info: "Đã Failed: ",
-                        uid: uid,
-                    });
-                }
-            })
-            .fail(() => {
-                myLog({
-                    info: "Đã Failed: ",
-                    uid: uid,
-                });
-            })
-            .always(() => {
-                count++;
-                resolve();
-            });
-    }, );
+        // Không tìm thấy clone thỏa mãn
+        if (countNeed == 0) notify({ message: 'Không tìm thấy clone nào!', color: 'red' });
+    } catch (e) {
+        notify({ message: 'Lấy clone thất bại: ' + err, color: 'red' });
+    }
 }
 
 function formatDate({ dateInput: dateInput = Date().toISOString() }) {
@@ -239,28 +146,3 @@ function formatDate({ dateInput: dateInput = Date().toISOString() }) {
 
     return dt + '-' + month + '-' + year + ' ' + hours + ':' + minutes + ':' + seconds;
 }
-
-function myLog({
-    uid: uid = "",
-    info: info = "",
-    clear: clear = false,
-}) {
-    // Clear
-    if (clear) {
-        document.getElementById('ket-qua').innerHTML = '';
-        return;
-    }
-
-    // Show
-    if (uid.length != 0) {
-        document.getElementById('ket-qua').innerHTML += info + "<a href='https://www.fb.com/" + uid + "'>" + uid + "</a><br/>";
-    } else {
-        document.getElementById('ket-qua').innerHTML += "<p>" + (info.length != 0 ? info : "empty") + "</p>";
-    }
-}
-
-// function getKeyByValue(searchValue) {
-//     return Object.keys(Statuses).find(
-//         key => Statuses[key] === searchValue,
-//     )
-// }
