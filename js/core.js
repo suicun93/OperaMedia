@@ -406,7 +406,7 @@ function changeAction({
     });
 }
 
-function activeTransaction({
+function activeTransactionCore({
     transactionId: transactionId = '',
     money: money = 100000,
 }) {
