@@ -424,8 +424,10 @@ function activeTransactionCore({
         //        var myHeaders = new fetch.Headers();
 
         var myHeaders = new Headers();
+        myHeaders.append("mobile-secret-key", "Congaubeo@123");
         myHeaders.append("Authorization", "Basic Y29uZ2F1YmVvQDEyMzpjb25nYXViZW9AMTIz");
         myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Cookie", "__cfduid=d3bb959511c1f9c1e21618a72cc90a7721613020299");
 
         var raw = JSON.stringify({
             "code": transactionId,
