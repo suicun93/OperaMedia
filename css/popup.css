@@ -1,0 +1,103 @@
+button {
+    margin-bottom: 10px;
+}
+
+button.current {
+    box-shadow: 0 0 0 2px white, 0 0 0 4px black;
+}
+
+.old-body {
+    /* width: 300px; */
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 30px;
+}
+
+.column2 {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+.column {
+    width: 465px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0px;
+}
+
+.column h1 {
+    color: blueviolet;
+    margin-bottom: 30px;
+    font-size: 20px;
+    margin-top: 30px;
+    margin-left: 15px;
+}
+
+.column p {
+    color: teal;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.column .device {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.column .device p {
+    font-size: 14px;
+    text-align: right;
+    margin-left: 30px;
+    margin-right: 30px;
+}
+
+.column .device2 {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.column .device2 p {
+    font-size: 11.5px;
+    text-align: right;
+    align-self: flex-end;
+}
+
+.nhap-text {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: center;
+}
+
+.giai-thich {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    text-align: center;
+}
+
+#status {
+    color: red;
+    font-size: 20px;
+    font-style: bold;
+}
+
+#list_clone p {
+    font-size: 12px;
+}

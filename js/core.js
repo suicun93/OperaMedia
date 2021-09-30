@@ -125,6 +125,7 @@ function loadCloneByPage({
     token: token,
     alive_status: alive_status = defaultList,
     page: page = 1,
+    limit: limit = totalPageSize,
 }) {
     return new Promise((done, quit) => {
 
@@ -145,7 +146,7 @@ function loadCloneByPage({
                 "facebook"
             ],
             "page": page,
-            "limit": totalPageSize,
+            "limit": limit,
             "android_id": null
         });
 
@@ -163,7 +164,7 @@ function loadCloneByPage({
                 let json = JSON.parse(result);
                 if (json.code == 200 && json.data != null && json.data.data != null) {
                     done({
-                        page: page,
+                        total: json.data.total,
                         clones: json.data.data,
                     });
                 } else {
@@ -172,7 +173,6 @@ function loadCloneByPage({
             })
             .catch(error => quit(error));
     });
-    // .then(result => console.log(result)).catch((err) => console.error(err));
 }
 
 function resetCloneCore({
@@ -463,32 +463,6 @@ function activeTransactionCore({
 function getToday({
     token: token,
 }) {
-    function formatToday() {
-        var date = new Date();
-        date = new Date(date.getTime());
-
-        year = date.getFullYear();
-        month = date.getMonth() + 1;
-        dt = date.getDate();
-        nextDate = dt + 1;
-
-        if (dt < 10) {
-            dt = '0' + dt;
-        }
-
-        if (nextDate < 10) {
-            nextDate = '0' + nextDate;
-        }
-
-        if (month < 10) {
-            month = '0' + month;
-        }
-
-        return {
-            startDate: year + '-' + month + '-' + dt + 'T00:00:00+07:00',
-            endDate: year + '-' + month + '-' + nextDate + 'T00:00:00+07:00',
-        };
-    }
 
     return new Promise((done, quit) => {
 
@@ -570,4 +544,400 @@ function getToday({
             })
             .catch(error => quit(error));
     });
+}
+
+function getThanhToanCore({
+    token: token = defaultToken,
+}) {
+    return new Promise((done, quit) => {
+
+        // check token
+        if (token == undefined || token.length == 0) {
+            quit('Không có token');
+            return;
+        }
+
+        // Call API
+
+        // const fetch = require('node-fetch');
+        // var myHeaders = new fetch.Headers();
+
+        var myHeaders = new Headers();
+        myHeaders.append("authority", "customer.autofarmer.net");
+        myHeaders.append("token", token);
+        myHeaders.append("content-type", "application/json");
+        myHeaders.append("origin", "https://www.autofarmer.net");
+        myHeaders.append("referer", "https://www.autofarmer.net/");
+
+        var raw = "";
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("https://customer.autofarmer.net/v1/reports/daily-pay", requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                let json = JSON.parse(result);
+                if (json.code == 200 && json.data != null) {
+                    let list = json.data;
+                    // Data đã về
+                    list = list.map(item => {
+                        item.created_date = new Date(item.created_date);
+                        return item;
+                    });
+                    // Cac moc thoi gian
+                    let today = new Date();
+                    let dayLastMonth = list[today.getDate()] != null ? list[today.getDate()].created_date : null;
+                    // Tong
+                    var sum = 0;
+                    var sumThangNay = 0;
+                    var sumThangTruoc = 0;
+                    let yesterdayBill = list[1] == null ? 0 : list[1].amount;
+                    var toDayBill = list[0] == null ? 0 : list[0].amount;
+                    let thoiGianDaQua = today.getHours() * 60 * 60 + today.getMinutes() * 60 + today.getSeconds();
+                    let estimate = parseInt(toDayBill * 86400 / thoiGianDaQua);
+
+                    // Duyet
+                    for (const bill of list) {
+                        let X = bill.created_date;
+                        // Sum
+                        sum += bill.amount;
+                        if (X.getMonth() == today.getMonth() && X.getYear() == today.getYear()) { sumThangNay += bill.amount; }
+                        if (dayLastMonth != null && (X.getMonth() == dayLastMonth.getMonth() && X.getYear() == dayLastMonth.getYear())) { sumThangTruoc += bill.amount; }
+                    }
+
+                    done({
+                        today: toDayBill.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                        estimate: estimate.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                        yesterday: yesterdayBill.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                        thangTruoc: sumThangTruoc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                        thangNay: sumThangNay.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                        sum: sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                    });
+                } else {
+                    console.log(json);
+                    quit(json.message);
+                }
+            })
+            .catch(error => quit(error));
+    });
+}
+
+function getCloneCountCore({
+    token: token = defaultToken,
+}) {
+    return new Promise(async(done, quit) => {
+        // check token
+        if (token == undefined || token.length == 0) {
+            quit('Không có token');
+            return;
+        }
+
+        // Count thread
+        var countNeed = 6;
+        var countDone = 0;
+
+        // Count clone
+        var all = 0;
+        var live = 0;
+        var checkpoint = 0;
+        var stored = 0;
+        var checking = 0;
+        var getting = 0;
+
+        // Tổng hợp
+        function sumUp({
+            alive_status: alive_status,
+            total: total,
+        }) {
+            if (alive_status == 'all') all = total;
+            if (alive_status == 'live') live = total;
+            if (alive_status == 'checkpoint') checkpoint = total;
+            if (alive_status == 'stored') stored = total;
+            if (alive_status == 'checking') checking = total;
+            if (alive_status == 'getting') getting = total;
+            countDone++;
+            if (countNeed == countDone) {
+                done({
+                    all: all,
+                    live: live,
+                    checkpoint: checkpoint,
+                    stored: stored,
+                    checking: checking,
+                    getting: getting,
+                });
+            }
+        }
+
+        // Thu nghiem
+        // Thread counts all
+        loadCloneByPage({
+            token: token,
+            alive_status: defaultList,
+            limit: 1,
+        }).then(result => {
+            sumUp({
+                alive_status: 'all',
+                total: result.total,
+            });
+        }).catch(err => quit(err));
+        // 5 threads count all of clone status
+        for (let alive_status of defaultList) {
+            // try {
+            //     let result = await loadCloneByPage({
+            //         token: token,
+            //         alive_status: [alive_status],
+            //         limit: 1,
+            //     })
+            //     sumUp({
+            //         alive_status: alive_status,
+            //         total: result.total,
+            //     })
+            // } catch (error) {
+            //     quit(error);
+            // }
+
+            loadCloneByPage({
+                token: token,
+                alive_status: [alive_status],
+                limit: 1,
+            }).then(result => {
+                sumUp({
+                    alive_status: alive_status,
+                    total: result.total,
+                });
+            }).catch(err => quit(err));
+        }
+    });
+}
+// getCloneCountCore({}).then((r) => console.log(r));
+
+function getDeviceMoneyCore({
+    token: token = defaultToken,
+}) {
+    return new Promise((done, quit) => {
+        // check token
+        if (token == undefined || token.length == 0) {
+            quit('Không có token');
+            return;
+        }
+
+        // Call API
+        // const fetch = require('node-fetch');
+        // var myHeaders = new fetch.Headers();
+        var myHeaders = new Headers();
+        myHeaders.append("authority", "customer.autofarmer.net");
+        myHeaders.append("token", token);
+        myHeaders.append("content-type", "application/json");
+        myHeaders.append("origin", "https://www.autofarmer.net");
+        myHeaders.append("referer", "https://www.autofarmer.net/");
+
+        let currentTime = formatToday();
+        var raw = JSON.stringify({
+            "start_time": currentTime.startDate,
+            "end_time": currentTime.endDate,
+            "limit": 1000,
+            "page": 1,
+        });
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("https://customer.autofarmer.net/v1/reports/daily-device", requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                let json = JSON.parse(result);
+                if (json.code == 200 && json.data.data != null) {
+                    var listDevice = json.data.data;
+                    done(listDevice);
+                } else {
+                    console.log(json);
+                    quit(json.message);
+                }
+            })
+            .catch(error => quit(error));
+    });
+}
+
+function getDeviceCore({
+    token: token = defaultToken,
+}) {
+    return new Promise((done, quit) => {
+        // check token
+        if (token == undefined || token.length == 0) {
+            quit('Không có token');
+            return;
+        }
+
+        // Call API
+        // const fetch = require('node-fetch');
+        // var myHeaders = new fetch.Headers();
+        var myHeaders = new Headers();
+        myHeaders.append("authority", "customer.autofarmer.net");
+        myHeaders.append("token", token);
+        myHeaders.append("content-type", "application/json");
+        myHeaders.append("origin", "https://www.autofarmer.net");
+        myHeaders.append("referer", "https://www.autofarmer.net/");
+
+        var raw = JSON.stringify({
+            "status": [
+                "Active",
+                "Approved"
+            ],
+            "page": 1,
+            "limit": 1000
+        });
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("https://customer.autofarmer.net/v1/devices/search", requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                let json = JSON.parse(result);
+                if (json.code == 200 && json.data.data != null) {
+                    var listDevice = json.data.data;
+                    done(listDevice);
+                } else {
+                    console.log(json);
+                    quit(json.message);
+                }
+            })
+            .catch(error => quit(error));
+    });
+}
+
+function tongHopCloneCore({
+    token: token = defaultToken
+}) {
+    return new Promise((done, quit) => {
+        var moneyDevices;
+        var devices;
+        async function getMoney() {
+            moneyDevices = await getDeviceMoneyCore({ token: token });
+            combine();
+        }
+        async function getDevice() {
+            devices = await getDeviceCore({ token: token });
+            combine();
+        }
+        // Process
+        function combine() {
+            if (moneyDevices != undefined && devices != undefined) {
+                // console.log(devices);
+                devices
+                    .map(device => {
+                        let time = diffFromNow(device.last_action_at);
+                        let moneyDevice = moneyDevices.find(device2 => device2.android_id == device.AndroidId)
+                        device.money = moneyDevice == undefined ? 0 : moneyDevice.total_price;
+                        device.color = time.color;
+                        device.ago = time.ago;
+                    });
+                devices.sort((a, b) => a.money - b.money);
+                done(devices);
+            }
+        }
+        try {
+            // Run 2 threads
+            getMoney();
+            getDevice();
+        } catch (error) {
+            quit(error);
+        }
+    });
+}
+
+function diffFromNow(time) {
+    if (time == undefined || time.length == 0) {
+        return {
+            color: 'color:blue;',
+            ago: 'New',
+        };
+    }
+    // Time ago
+    var timeAgo = '';
+    var periods = {
+        month: 30 * 24 * 60 * 60 * 1000,
+        week: 7 * 24 * 60 * 60 * 1000,
+        day: 24 * 60 * 60 * 1000,
+        hour: 60 * 60 * 1000,
+        minute: 60 * 1000
+    };
+    let diff2 = new Date() - new Date(time);
+    if (diff2 > periods.month) {
+        // it was at least a month ago
+        timeAgo = Math.floor(diff2 / periods.month) + "m ago";
+    } else if (diff2 > periods.week) {
+        timeAgo = Math.floor(diff2 / periods.week) + "w ago";
+    } else if (diff2 > periods.day) {
+        timeAgo = Math.floor(diff2 / periods.day) + "d ago";
+    } else if (diff2 > periods.hour) {
+        timeAgo = Math.floor(diff2 / periods.hour) + "h ago";
+    } else if (diff2 > periods.minute) {
+        timeAgo = Math.floor(diff2 / periods.minute) + "m ago";
+    } else {
+        timeAgo = "Online";
+    }
+    // Color
+    var color = '';
+    var diff = Math.floor((Math.abs(new Date(time) - new Date()) / 1000) / 60);
+    if (diff <= 15) {
+        color = 'color:green;'
+    } else if (diff > 15 && diff <= 60) {
+        color = 'color:plum;'
+    } else if (diff > 60 && diff <= 24 * 60) {
+        color = 'color:orange;'
+    } else {
+        color = 'color:red;'
+    }
+    return {
+        color: color,
+        ago: timeAgo,
+    };
+}
+
+function formatToday() {
+    var date = new Date();
+
+    year = date.getFullYear();
+    month = date.getMonth() + 1;
+    dt = date.getDate();
+
+    let nextDate = new Date(date.getTime() + 24 * 60 * 60 * 1000);;
+    yearnextDate = nextDate.getFullYear();
+    monthnextDate = nextDate.getMonth() + 1;
+    dtnextDate = nextDate.getDate();
+
+    if (dt < 10) {
+        dt = '0' + dt;
+    }
+
+    if (dtnextDate < 10) {
+        dtnextDate = '0' + dtnextDate;
+    }
+
+    if (month < 10) {
+        month = '0' + month;
+    }
+
+    if (monthnextDate < 10) {
+        monthnextDate = '0' + monthnextDate;
+    }
+
+    return {
+        startDate: year + '-' + month + '-' + dt + 'T00:00:00+07:00',
+        endDate: yearnextDate + '-' + monthnextDate + '-' + dtnextDate + 'T00:00:00+07:00',
+    };
 }
