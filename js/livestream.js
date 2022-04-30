@@ -30,13 +30,88 @@ async function buff() {
         notify({ message: 'Buff thất bại: ' + err.message, color: 'red', dismiss: true });
     }
 }
+async function buffLinhTra() {
 
-// buffLiveStream({
-//     id: getUUID('https://www.facebook.com/watch/live/?ref=notif&v=322712496668949&notif_id=1651129801023191&notif_t=live_video_explicit'),
-//     soPhut: 30,
-//     soMat: 50,
-//     kenh: 8,
-// })
+    try {
+        // Get params
+        var mat500 = document.getElementById('buff500').value;
+        var mat100 = document.getElementById('buff100').value;
+
+        // Clear all
+        notify({ clear: true });
+
+        let arr500 = mat500.split('\n');
+        let arr100 = mat100.split('\n');
+
+        // Execute
+        notify({ message: 'Đang thực hiện...', color: 'cadetblue' });
+
+        var arrThread = [];
+        for (const link of arr500) {
+            if (link && link !== "") {
+                arrThread.push(new Promise(async(done) => {
+                    try {
+                        let result = await buffLiveStream({
+                            link: link,
+                            soPhut: 120,
+                            soMat: 500,
+                            kenh: 8,
+                        })
+
+                        notify({
+                            message: 'Đã buff 500 cho <a href="' + link + '">' + link + '</a>. ' + result,
+                            color: 'cadetblue',
+                        });
+                        done();
+                    } catch (err) {
+                        notify({
+                            message: 'Buff thất bại: <a href="' + link + '">' + link + '</a>. ' + ' (' + err.message + ')',
+                            color: 'red',
+                        });
+                        done();
+                    }
+                }, ), );
+            }
+        }
+        for (const link of arr100) {
+            if (link && link !== "") {
+                arrThread.push(new Promise(async(done) => {
+                    try {
+                        let result = await buffLiveStream({
+                            link: link,
+                            soPhut: 120,
+                            soMat: 100,
+                            kenh: 8,
+                        })
+
+                        notify({
+                            message: 'Đã buff 100 cho <a href="' + link + '">' + link + '</a>. ' + result,
+                            color: 'cornflowerblue',
+                        });
+                        done();
+                    } catch (err) {
+                        notify({
+                            message: 'Buff thất bại: <a href="' + link + '">' + link + '</a>. ' + ' (' + err.message + ')',
+                            color: 'red',
+                        });
+                        done();
+                    }
+                }, ), );
+            }
+        }
+        await Promise.all(arrThread);
+        notify({
+            message: 'Đã xử lý xong hết đơn.',
+            color: 'darkorchid',
+        });
+
+    } catch (err) {
+        notify({
+            message: 'Buff thất bại: ' + err.message,
+            color: 'red',
+        });
+    }
+}
 
 function buffLiveStream({
     link,
