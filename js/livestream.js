@@ -49,7 +49,7 @@ async function buffLinhTra() {
         var arrThread = [];
         for (const link of arr500) {
             if (link && link !== "") {
-                arrThread.push(new Promise(async(done) => {
+                arrThread.push(new Promise(async (done) => {
                     try {
                         let result = await buffLiveStream({
                             link: link,
@@ -70,12 +70,12 @@ async function buffLinhTra() {
                         });
                         done();
                     }
-                }, ), );
+                }));
             }
         }
         for (const link of arr100) {
             if (link && link !== "") {
-                arrThread.push(new Promise(async(done) => {
+                arrThread.push(new Promise(async (done) => {
                     try {
                         let result = await buffLiveStream({
                             link: link,
@@ -96,10 +96,56 @@ async function buffLinhTra() {
                         });
                         done();
                     }
-                }, ), );
+                }));
             }
         }
         await Promise.all(arrThread);
+        notify({
+            message: 'Đã xử lý xong hết đơn.',
+            color: 'darkorchid',
+        });
+
+    } catch (err) {
+        notify({
+            message: 'Buff thất bại: ' + err.message,
+            color: 'red',
+        });
+    }
+}
+
+async function tachLink() {
+
+    try {
+        // Get params
+        var pages = document.getElementById('page').value;
+        var links = document.getElementById('link').value;
+
+        // Clear all
+        notify({ clear: true });
+
+        pages = pages.split('\n');
+        links = links.split('\n');
+
+        // Execute
+        notify({ message: 'Đang thực hiện...', color: 'cadetblue' });
+
+        for (let i = 0; i < links.length; i++) {
+            const link = links[i];
+            const page = pages[i];
+            try {
+                let uuid = getUUID(link);
+                notify({
+                    message: page + ': <a href="' + uuid + '">' + uuid + '</a>',
+                    color: 'cadetblue',
+                });
+            } catch (error) {
+                notify({
+                    message: page + ': Failed. ',
+                    color: 'red',
+                });
+            }
+        }       
+
         notify({
             message: 'Đã xử lý xong hết đơn.',
             color: 'darkorchid',
@@ -149,3 +195,15 @@ function buffLiveStream({
     });
 
 }
+
+function getUUID(link) {
+    let arr = link.replace('?', '&').split('&');
+    for (const str of arr) {
+        if (str && (str.startsWith('v=') || str.startsWith('video_id='))) {
+            return (str.split('=')[1]);
+        }
+    }
+    throw 'Không tìm thấy ID của link';
+}
+
+console.log(getUUID('https://www.facebook.com/watch/live/?ref=notif&v=322712496668949&notif_id=1651129801023191&notif_t=live_video_explicit'));
