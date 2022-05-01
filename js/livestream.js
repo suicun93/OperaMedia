@@ -205,8 +205,12 @@ function getUUID(link) {
     }
     if (link.includes('videos/')) {
         let startPosition = link.indexOf('videos/') + 7;
-        console.log(link);
-        return link.toString().substr(startPosition, 15);
+        let endPosition = link.indexOf('/', startPosition);
+        if (endPosition == -1) {
+            return link.toString().substring(startPosition, link.length);
+        } else {
+            return link.toString().substring(startPosition, endPosition);
+        }
     }
     throw Error('Không tìm thấy ID của link');
 }
