@@ -140,11 +140,11 @@ async function tachLink() {
                 });
             } catch (error) {
                 notify({
-                    message: page + ': Failed. ',
+                    message: page + ': Failed. ' + error.message,
                     color: 'red',
                 });
             }
-        }       
+        }
 
         notify({
             message: 'Đã xử lý xong hết đơn.',
@@ -203,7 +203,12 @@ function getUUID(link) {
             return (str.split('=')[1]);
         }
     }
-    throw 'Không tìm thấy ID của link';
+    if (link.includes('videos/')) {
+        let startPosition = link.indexOf('videos/') + 7;
+        console.log(link);
+        return link.toString().substr(startPosition, 15);
+    }
+    throw Error('Không tìm thấy ID của link');
 }
 
-console.log(getUUID('https://www.facebook.com/watch/live/?ref=notif&v=322712496668949&notif_id=1651129801023191&notif_t=live_video_explicit'));
+console.log(getUUID("https://www.facebook.com/cauchongaming/videos/708480083809476"));
